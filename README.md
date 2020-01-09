@@ -8,7 +8,7 @@ Data validation tools for data submitted for the Federal Real Property Profile. 
 Data is housed in MD SQL Server. The user must complete information in the config file with access information. 
 
 ### Geocoding Address
-Data from the FRPP Database is submitted to the REST API with inputs being Address, City, Region (State) and Postal (Zip Code). The JSON response from the API is captured. A summary of the service can be found [here.](https://developers.arcgis.com/rest/geocode/api-reference/geocoding-geocode-addresses.htm). A summary of the output can be found [here.](https://developers.arcgis.com/rest/geocode/api-reference/geocoding-service-output.htm)
+Data from the FRPP Database is submitted to the REST API with inputs being Address, City, Region (State) and Postal (Zip Code). The JSON response from the API is captured. A summary of the service can be found [here.](https://developers.arcgis.com/rest/geocode/api-reference/geocoding-geocode-addresses.htm) A summary of the output can be found [here.](https://developers.arcgis.com/rest/geocode/api-reference/geocoding-service-output.htm)
 
 ## License
 
