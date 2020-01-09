@@ -1,11 +1,11 @@
 # MD-RP-FRPP-Validation-Tool
-Data validation tools for data submitted for the Federal Real Property Profile. 
+Data validation tools for data submitted for the Federal Real Property Profile. Tests addresses to determine if they can be geocoded by ArcGIS REST API and also for distance variance from reported latitude/longitude. 
 
 ## Getting Started
 
 
 ### Getting the Data
-
+Data is housed in MD SQL Server. The user must complete information in the config file with access information. 
 
 ## License
 
