@@ -10,7 +10,7 @@ userName =   config.userName
 password =  config.password
 
 
-sql_query = "SELECT [ReportingAgency__c], [ReportingBureau__c], [RealPropertyUniqueId__c], [StateName__c] as Region, [CityName__c] as City, CAST([ZipCode__c] as VARCHAR(5)) as Postal, [StreetAddress__c] as Address FROM [OGPD2D].[dbo].[RP_FRPP_Salesforce_daily] where StreetAddress__c is not null and CountryName__c = 'United States'"
+sql_query = "SELECT [ReportingAgency__c], [ReportingBureau__c], [RealPropertyUniqueId__c], [StateName__c] as Region, [CityName__c] as City, CAST([ZipCode__c] as VARCHAR(5)) as Postal, [StreetAddress__c] as Address FROM [OGPD2D].[dbo].[RP_FRPP_Salesforce_daily] where StreetAddress__c is not null and CountryName__c = 'United States' and DATEADD(SECOND, CAST(LastModifiedDate as BIGINT)/1000 ,'1970/1/1') > '2020/2/12'"
 
 
 def get_frpp():
