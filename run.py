@@ -7,6 +7,7 @@ import pyodbc
 import urllib3
 import os
 import glob
+import time
 #from geopy import distance
 from utils import config
 #from utils import db
