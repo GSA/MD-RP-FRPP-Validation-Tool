@@ -31,6 +31,9 @@ def get_frpp():
 
 FRPP_df = get_frpp()
 
+### Create a unique ID as identifiers aren't standardized accross agencies. 
+FRPP_df['OBJECTID'] = FRPP_df[['ReportingAgency__c','ReportingBureau__c','RealPropertyUniqueId__c']].apply(lambda x: '_'.join(x), axis=1)
+
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 def get_json():
@@ -43,6 +46,7 @@ def get_json():
     init = iter_num * 1000
     x = init + 1000
     for index, row in FRPP_df[init:x].iterrows():
+        time.sleep(0.01)
         FRPP_address = json.dumps(
             {       
                 "records": [
