@@ -9,7 +9,7 @@ import os
 import glob
 #from geopy import distance
 from utils import config
-from utils import db
+#from utils import db
 
 url = 'https://agsivvwa.gsa.gov/gsagis1/rest/services/base/GeoLocate/GeocodeServer/geocodeAddresses'
 
@@ -24,7 +24,7 @@ def get_frpp():
     '''
     Sends credentials and SQL query, returns to dataframe
     '''
-    cnxn = pyodbc.connect('DRIVER={SQL Server};SERVER='+serverName+';DATABASE='+database+';UID='+userName+';PWD='+ password+'')
+    cnxn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server};SERVER='+serverName+';DATABASE='+database+';UID='+userName+';PWD='+ password+'')
     df = pd.read_sql(sql_query, cnxn)
     cnxn.close()
     return df
