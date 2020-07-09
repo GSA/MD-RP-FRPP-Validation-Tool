@@ -19,7 +19,8 @@ password = config.password
 database= config.database
 userName =  config.userName
 
-sql_query = "SELECT [ReportingAgency__c], [ReportingBureau__c], [RealPropertyUniqueId__c], [StateName__c] as Region, [CityName__c] as City, CAST([ZipCode__c] as VARCHAR(5)) as Postal, [StreetAddress__c] as Address FROM [OGPD2D].[dbo].[RP_FRPP_Salesforce_daily] where StreetAddress__c is not null and CountryName__c = 'United States' and DATEADD(SECOND, CAST(LastModifiedDate as BIGINT)/1000 ,'1970/1/1') > '2020/2/12'"
+#sql_query = "SELECT [ReportingAgency__c] as Agency, [ReportingBureau__c] as Bureau, [RealPropertyUniqueId__c] as RPUID, [StateName__c] as Region, [CityName__c] as City, CAST([ZipCode__c] as VARCHAR(5)) as Postal, [StreetAddress__c] as Address FROM [OGPD2D].[dbo].[RP_FRPP_Salesforce_daily] where StreetAddress__c is not null and CountryName__c = 'United States' and DATEADD(SECOND, CAST(LastModifiedDate as BIGINT)/1000 ,'1970/1/1') > '2020/2/12'"
+sql_query = "SELECT [Reporting_Agency] as Agency, [Reporting_Bureau] as Bureau, [Real Property Unique Identifier] as RPUID, [State] as Region, [City], CAST([Zip Code] as VARCHAR(5)) as Postal, [Street Address] as Address FROM [OGPD2D].[dbo].[RP_FRPP_Public_Dataset_FY19_Final] where latitude = '' or cast(Latitude as float) = 0 and Country = 'United States'"
 
 def get_frpp():
     '''
@@ -33,7 +34,7 @@ def get_frpp():
 FRPP_df = get_frpp()
 
 ### Create a unique ID as identifiers aren't standardized accross agencies. 
-FRPP_df['OBJECTID'] = FRPP_df[['ReportingAgency__c','ReportingBureau__c','RealPropertyUniqueId__c']].apply(lambda x: '_'.join(x), axis=1)
+FRPP_df['OBJECTID'] = FRPP_df[['Agency','Bureau','RPUID']].apply(lambda x: '_'.join(x), axis=1)
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -150,7 +151,7 @@ final_df.rename(columns={
     'location.y ' :  'location.y'}, 
     inplace=True)
 
-final_df.to_excel('data/FRPP_geocoded.xlsx')
+final_df.to_excel('data/FRPP_geocoded_07092020.xlsx')
 
 geo_lat = 'location.x'
 geo_long = 'location.x'
