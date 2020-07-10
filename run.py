@@ -26,7 +26,8 @@ def get_frpp():
     '''
     Sends credentials and SQL query, returns to dataframe
     '''
-    cnxn = pyodbc.connect("DRIVER={SQL Server Native Client 11.0};SERVER=" + serverName + ";DATABASE="+ database +";UID="+userName+";PWD=" +password)
+    cnxn = pyodbc.connect("DRIVER={ODBC Driver 17 for SQL Server};SERVER=" + serverName + ";DATABASE="+ database +";UID="+userName+";PWD=" +password)
+    #'DRIVER={ODBC Driver 17 for SQL Server}
     df = pd.read_sql(sql_query, cnxn)
     cnxn.close()
     return df
