@@ -12,8 +12,9 @@ import time
 from utils import config
 #from utils import db
 
-url = 'https://agsivvwa.gsa.gov/gsagis1/rest/services/base/GeoLocate/GeocodeServer/geocodeAddresses'
-
+#url = 'https://agsivvwa.gsa.gov/gsagis1/rest/services/base/GeoLocate/GeocodeServer/geocodeAddresses'
+url = 'https://agedev.gsa.gov/ages/rest/services/boundaries/USA/GeocodeServer'
+response = re.get(url, verify=False)
 serverName = 'd2d-sqlserver.test-data2dec.bsp.gsa.gov' #config.serverName
 #print(serverName)
 password = 'Ironbeard9' #config.password
@@ -26,7 +27,7 @@ def get_frpp():
     '''
     Sends credentials and SQL query, returns to dataframe
     '''
-    cnxn = pyodbc.connect("DRIVER={ODBC Driver 17 for SQL Server};SERVER=" + serverName + ";DATABASE="+ database +";UID="+userName+";PWD=" +password)
+    cnxn = pyodbc.connect("DRIVER={SQL Server Native Client 11.0};SERVER=" + serverName + ";DATABASE="+ database +";UID="+userName+";PWD=" +password)
     #'DRIVER={ODBC Driver 17 for SQL Server}
     df = pd.read_sql(sql_query, cnxn)
     cnxn.close()
