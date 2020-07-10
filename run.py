@@ -14,19 +14,19 @@ from utils import config
 
 url = 'https://agsivvwa.gsa.gov/gsagis1/rest/services/base/GeoLocate/GeocodeServer/geocodeAddresses'
 
-serverName = config.serverName
-password = config.password
-database= config.database
-userName =  config.userName
-
+serverName = 'd2d-sqlserver.test-data2dec.bsp.gsa.gov' #config.serverName
+#print(serverName)
+password = 'Ironbeard9' #config.password
+database= 'OGPD2D' #config.database
+userName = 'aeisenbarth' #config.userName
 #sql_query = "SELECT [ReportingAgency__c] as Agency, [ReportingBureau__c] as Bureau, [RealPropertyUniqueId__c] as RPUID, [StateName__c] as Region, [CityName__c] as City, CAST([ZipCode__c] as VARCHAR(5)) as Postal, [StreetAddress__c] as Address FROM [OGPD2D].[dbo].[RP_FRPP_Salesforce_daily] where StreetAddress__c is not null and CountryName__c = 'United States' and DATEADD(SECOND, CAST(LastModifiedDate as BIGINT)/1000 ,'1970/1/1') > '2020/2/12'"
-sql_query = "SELECT [Reporting_Agency] as Agency, [Reporting_Bureau] as Bureau, [Real Property Unique Identifier] as RPUID, [State] as Region, [City], CAST([Zip Code] as VARCHAR(5)) as Postal, [Street Address] as Address FROM [OGPD2D].[dbo].[RP_FRPP_Public_Dataset_FY19_Final] where latitude = '' or cast(Latitude as float) = 0 and Country = 'United States'"
+sql_query = "SELECT [Reporting_Agency] as Agency, [Reporting_Bureau] as Bureau, [Real Property Unique Identifier] as RPUID, [State] as Region, [City], CAST([Zip Code] as VARCHAR(5)) as Postal, [Street Address] as Address FROM [OGPD2D].[dbo].[RP_FRPP_Public_Dataset_FY19_Final] where latitude = '' and Country = 'United States'"
 
 def get_frpp():
     '''
     Sends credentials and SQL query, returns to dataframe
     '''
-    cnxn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server};SERVER='+serverName+';DATABASE='+database+';UID='+userName+';PWD='+ password+'')
+    cnxn = pyodbc.connect("DRIVER={SQL Server Native Client 11.0};SERVER=" + serverName + ";DATABASE="+ database +";UID="+userName+";PWD=" +password)
     df = pd.read_sql(sql_query, cnxn)
     cnxn.close()
     return df
@@ -153,14 +153,14 @@ final_df.rename(columns={
 
 final_df.to_excel('data/FRPP_geocoded_07092020.xlsx')
 
-geo_lat = 'location.x'
-geo_long = 'location.x'
-input_lat = 'SUBMITTED LATITUDE'
-input_long = 'SUBMITTED LONGITUDE'
-final_df['DISTANCE VARIANCE'] = final_df.apply(
-    (lambda row: distance.distance(
-        (row[geo_lat], row[geo_long]),
-        (row[input_lat], row[input_long])
-    ).miles),
-    axis=1
-)
+# geo_lat = 'location.x'
+# geo_long = 'location.x'
+# input_lat = 'SUBMITTED LATITUDE'
+# input_long = 'SUBMITTED LONGITUDE'
+# final_df['DISTANCE VARIANCE'] = final_df.apply(
+#     (lambda row: distance.distance(
+#         (row[geo_lat], row[geo_long]),
+#         (row[input_lat], row[input_long])
+#     ).miles),
+#     axis=1
+# )
