@@ -9,10 +9,10 @@ import os
 import glob
 import time
 #from geopy import distance
-from utils import config
-#from utils import db
+#from utils import config
+from utils import db
 
-#url = 'https://agsivvwa.gsa.gov/gsagis1/rest/services/base/GeoLocate/GeocodeServer/geocodeAddresses'
+#urlOld = 'https://agsivvwa.gsa.gov/gsagis1/rest/services/base/GeoLocate/GeocodeServer/geocodeAddresses'
 url = 'https://agedev.gsa.gov/ages/rest/services/boundaries/USA/GeocodeServer'
 response = re.get(url, verify=False)
 serverName = 'd2d-sqlserver.test-data2dec.bsp.gsa.gov' #config.serverName
@@ -34,6 +34,7 @@ def get_frpp():
     return df
 
 FRPP_df = get_frpp()
+
 
 ### Create a unique ID as identifiers aren't standardized accross agencies. 
 FRPP_df['OBJECTID'] = FRPP_df[['Agency','Bureau','RPUID']].apply(lambda x: '_'.join(x), axis=1)
