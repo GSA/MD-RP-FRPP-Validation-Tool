@@ -6,39 +6,67 @@ import json
 import pyodbc
 import urllib3
 import os
+#os.chdir('G:\\Shared drives\\MD Database Team\\MA\\RP\\RP_FRPP_Validation_Tool\\MD-RP-FRPP-Validation-Tool')
 import glob
 import time
-#from geopy import distance
-#from utils import config
-from utils import db
+from geopy import distance
+file_dir = os.path.dirname(__file__)
+sys.path.append(file_dir)
+from utils import config 
+import datetime 
 
-#urlOld = 'https://agsivvwa.gsa.gov/gsagis1/rest/services/base/GeoLocate/GeocodeServer/geocodeAddresses'
-url = 'https://agedev.gsa.gov/ages/rest/services/boundaries/USA/GeocodeServer'
-response = re.get(url, verify=False)
-serverName = 'd2d-sqlserver.test-data2dec.bsp.gsa.gov' #config.serverName
-#print(serverName)
-password = 'Ironbeard9' #config.password
-database= 'OGPD2D' #config.database
-userName = 'aeisenbarth' #config.userName
-#sql_query = "SELECT [ReportingAgency__c] as Agency, [ReportingBureau__c] as Bureau, [RealPropertyUniqueId__c] as RPUID, [StateName__c] as Region, [CityName__c] as City, CAST([ZipCode__c] as VARCHAR(5)) as Postal, [StreetAddress__c] as Address FROM [OGPD2D].[dbo].[RP_FRPP_Salesforce_daily] where StreetAddress__c is not null and CountryName__c = 'United States' and DATEADD(SECOND, CAST(LastModifiedDate as BIGINT)/1000 ,'1970/1/1') > '2020/2/12'"
-sql_query = "SELECT [Reporting_Agency] as Agency, [Reporting_Bureau] as Bureau, [Real Property Unique Identifier] as RPUID, [State] as Region, [City], CAST([Zip Code] as VARCHAR(5)) as Postal, [Street Address] as Address FROM [OGPD2D].[dbo].[RP_FRPP_Public_Dataset_FY19_Final] where latitude = '' and Country = 'United States'"
+dater = datetime.datetime.now() 
+dater = (str(dater.month) + str(dater.day) + str(dater.year))
+#print(dater)
+#Get address data from SQL Server
+sql_query = '''SELECT [Asset_ID__c] as OBJECTID
+,[ReportingAgency__c] as Agency
+,[ReportingBureau__c] as Bureau
+,[RealPropertyUniqueId__c] as RPUID
+,[StateName__c] as Region
+,[CityName__c] as City
+,CAST([ZipCode__c] as VARCHAR(5)) as Postal
+,[StreetAddress__c] as Address 
+FROM [OGPD2D].[dbo].[RP_FRPP_Salesforce_daily_vw] 
+where CountryName__c = 'United States'
+and [AssetUse__c] in ('office','warehouse')
+and LegalInterest__c = 'Owned'
+and cast(SquareFeet__c as float) > 10000 
+and MSA is not null
+'''
 
 def get_frpp():
     '''
     Sends credentials and SQL query, returns to dataframe
     '''
-    cnxn = pyodbc.connect("DRIVER={SQL Server Native Client 11.0};SERVER=" + serverName + ";DATABASE="+ database +";UID="+userName+";PWD=" +password)
+    cnxn = pyodbc.connect("DRIVER={SQL Server Native Client 11.0};SERVER=" + config.serverName + ";DATABASE="+ config.database +";UID="+config.userName+";PWD=" +config.password)
     #'DRIVER={ODBC Driver 17 for SQL Server}
     df = pd.read_sql(sql_query, cnxn)
     cnxn.close()
     return df
 
 FRPP_df = get_frpp()
+#print(FRPP_df)
 
+#credentials for ArcGIS
 
-### Create a unique ID as identifiers aren't standardized accross agencies. 
-FRPP_df['OBJECTID'] = FRPP_df[['Agency','Bureau','RPUID']].apply(lambda x: '_'.join(x), axis=1)
+grant_type = 'refresh_token'
+url = "https://maps.stg.gsa.gov/arcgis/sharing/rest/oauth2/token"
+geocode_url = 'https://gsagis.stg.gsa.gov/arcgis/rest/services/GSA/GSA_USA/GeocodeServer/geocodeAddresses'
+payload = {
+    'refresh_token': config.refreshToken,
+    'client_id': config.clientId,
+    'grant_type': grant_type
+}
 
+def get_token(url, payload):
+    
+    token_response = re.get(url, params=payload)
+    token = token_response.json()['access_token']
+    
+    return token
+
+#disable warning 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 def get_json():
@@ -48,40 +76,48 @@ def get_json():
     list of objects vs dataframe for performance.
     '''
     json_arr = []
-    init = iter_num * 1000
-    x = init + 1000
-    for index, row in FRPP_df[init:x].iterrows():
+    #init = iter_num * 1000
+    #x = init + 1000
+    #print("Processed: ", x)
+    for index, row in FRPP_df.iterrows():
         time.sleep(0.01)
         FRPP_address = json.dumps(
             {       
                 "records": [
                     {
-                        "attributes": {
-                        "OBJECTID": row['OBJECTID'],
-                        "Address": row['Address'],
-                        "City": row['City'],
-                        "Region": row['Region'],
-                        "Postal": row['Postal']
+                        'attributes': {
+                        'OBJECTID': row['OBJECTID'],
+                        'Address': row['Address'],
+                        'City': row['City'],
+                        'Region': row['Region'],
+                        'Postal': row['Postal']
                     }
                     }
                 ]
-            }
-            )
+            })
+        print("Processed: ", index)
+        token = get_token(url, payload)
 
+        geocode_payload = {
+            'addresses': FRPP_address,
+            'token': token,
+            'f': 'pjson'
+        }
 
-        r = re.get(url, params = { 'addresses': FRPP_address, 'f':'pjson'},verify = False)
-        temp_df = json_normalize(r.json()['locations'])
+        geocode_results = re.get(geocode_url, params = geocode_payload)
+        #print(geocode_results.json())
+
+        temp_df = json_normalize(geocode_results.json()['locations'])
         temp_df.insert(0,'OBJECTID',row['OBJECTID'])
         json_arr.append(temp_df)
-
     return json_arr
-
+    
 def json_to_excel():
     '''
     Convert json_arr to dataframe. Write dataframe to excel.
     '''
     geocoded_df = pd.concat(json_arr)
-    file_name=  'data/archive/geocoded' + str(iter_num) + '.xlsx'
+    file_name=  'data/archive/geocoded_' + dater + '.xlsx'
     geocoded_df.to_excel(file_name)
 
 def read_multi_excel(path):
@@ -102,20 +138,20 @@ def read_multi_excel(path):
     
     return df
 
-for i in range(0, 916):
-    '''
-    This was created to be able to stop/start iteration through all records as desired. Each increment
-    reflects 1000 rows of data, leverages get_json function to get json response from api and json_to_excel
-    function to convert json to dataframe and write to excel. Each file contains 1000 records. This allowed 
-    me to start at x if something timed/errored out. 
-    '''
-    iter_num = i
-    
-    json_arr = get_json()
-    
-    json_to_excel()
+counter = len(FRPP_df.index) 
+f = open("FRPP_Validation_Elapsed_Time_Log.txt", "a")
 
-final_df = read_multi_excel('data/archive/*.xlsx')
+startTime = datetime.datetime.now()
+json_arr = get_json()
+closeTime = datetime.datetime.now()
+elapsedTime = closeTime - startTime
+
+f.write("ArcGIS API StartTime: " + str(startTime) + " closeTime: " + str(closeTime) + " elapsedTime: " + str(elapsedTime) + " count of API hits: " + str(counter))
+f.close()
+
+json_to_excel()
+
+final_df = read_multi_excel("data\\archive\\geocoded_" + str(dater) + ".xlsx")
 
 final_df.rename(columns={
     'attributes.AddNum' :  'AddNum',
@@ -135,11 +171,10 @@ final_df.rename(columns={
     'attributes.Region' :  'Region',
     'attributes.RegionAbbr' :  'RegionAbbr',
     'attributes.ResultID' :  'ResultID',
-    'attributes.Score' :  'Score',
     'attributes.Side' :  'Side',
     'attributes.StAddr' :  'StAddr',
     'attributes.StDir' :  'StDir',
-    'attributes.StName' :  'StName,',
+    'attributes.StName' :  'StName',
     'attributes.StPreDir' :  'StPreDir',
     'attributes.StPreType' :  'StPreType',
     'attributes.StType' :  'StType',
@@ -154,7 +189,26 @@ final_df.rename(columns={
     'location.y ' :  'location.y'}, 
     inplace=True)
 
-final_df.to_excel('data/FRPP_geocoded_07092020.xlsx')
+final_df.to_excel('data/FRPP_geocoded_' + dater + '.xlsx')
+
+import urllib
+from sqlalchemy.engine import create_engine
+from sqlalchemy.types import Integer, Text, String, DateTime
+import sqlalchemy
+params = urllib.parse.quote_plus("DRIVER={SQL Server Native Client 11.0};SERVER=" + config.serverName + ";DATABASE="+ config.database +";UID="+ config.userName+";PWD=" + config.password)
+engine = create_engine("mssql+pyodbc:///?odbc_connect=%s" % params, module=pyodbc,echo=False)
+
+frppValidation = pd.read_excel("data\\FRPP_geocoded_" + dater + ".xlsx")
+#print(frppValidation)
+
+#FASCN_table.columns
+frppValidation.to_sql("RP_FRPP_Validation_Nightly",
+               engine,
+               if_exists='replace',
+               schema='dbo',
+               index=False,
+               chunksize=500)
+
 
 # geo_lat = 'location.x'
 # geo_long = 'location.x'
