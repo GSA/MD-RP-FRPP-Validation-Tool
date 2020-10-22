@@ -15,6 +15,7 @@ file_dir = os.path.dirname(__file__)
 sys.path.append(file_dir)
 from utils import config 
 import datetime 
+from sqlalchemy import create_engine
 
 dater = datetime.datetime.now() 
 dater = (str(dater.month) + str(dater.day) + str(dater.year))
@@ -40,9 +41,14 @@ def get_frpp():
     '''
     Sends credentials and SQL query, returns to dataframe
     '''
-    cnxn = pyodbc.connect("DRIVER={SQL Server Native Client 11.0};SERVER=" + config.serverName + ";DATABASE="+ config.database +";UID="+config.userName+";PWD=" +config.password)
+    # cnxn = pyodbc.connect("DRIVER={SQL Server Native Client 11.0};SERVER=" + config.serverName + ";DATABASE="+ config.database +";UID="+config.userName+";PWD=" +config.password)
+    # df = pd.read_sql(sql_query, cnxn)
+    # cnxn.close()
+
+    cnxn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server};SERVER='+config.serverName+';DATABASE='+config.database+';UID='+config.userName+';PWD='+ config.password)
+    cursor = cnxn.cursor()
     df = pd.read_sql(sql_query, cnxn)
-    cnxn.close()
+    # print(results)
     return df
 
 FRPP_df = get_frpp()
