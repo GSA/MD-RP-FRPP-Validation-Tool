@@ -4,7 +4,7 @@ from pandas.io.json import json_normalize
 import requests as re
 import json
 import pyodbc
-import urllib3
+import urllib
 import os
 #os.chdir('G:\\Shared drives\\MD Database Team\\MA\\RP\\RP_FRPP_Validation_Tool\\MD-RP-FRPP-Validation-Tool')
 import glob
@@ -40,7 +40,15 @@ def get_frpp():
     '''
     Sends credentials and SQL query, returns to dataframe
     '''
-    cnxn = pyodbc.connect("DRIVER={SQL Server Native Client 11.0};SERVER=" + config.serverName + ";DATABASE="+ config.database +";UID="+config.userName+";PWD=" +config.password)
+    serverName = config.sql_enviorn['serverName']
+    password =  config.sql_enviorn['password']
+    database= config.sql_enviorn['database']
+    userName =   config.sql_enviorn['userName']
+
+    params = urllib.parse.quote_plus("DRIVER={ODBC Driver 17 for SQL Server};SERVER=" + config.serverName + ";DATABASE="+ config.database +";UID="+config.userName+";PWD=" +config.password)
+    engine = create_engine("mssql+pyodbc:///?odbc_connect=%s" % params, module=pyodbc,echo=False)
+    Base = declarative_base(engine)
+    #cnxn = pyodbc.connect("DRIVER={SQL Server Native Client 11.0};SERVER=" + config.serverName + ";DATABASE="+ config.database +";UID="+config.userName+";PWD=" +config.password)
     #'DRIVER={ODBC Driver 17 for SQL Server}
     df = pd.read_sql(sql_query, cnxn)
     cnxn.close()
@@ -68,7 +76,7 @@ def get_token(url, payload):
     return token
 
 #disable warning 
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+#urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 def get_json():
     '''
