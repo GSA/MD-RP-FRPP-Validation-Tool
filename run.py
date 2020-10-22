@@ -40,16 +40,8 @@ def get_frpp():
     '''
     Sends credentials and SQL query, returns to dataframe
     '''
-    serverName = config.sql_enviorn['serverName']
-    password =  config.sql_enviorn['password']
-    database= config.sql_enviorn['database']
-    userName =   config.sql_enviorn['userName']
-
-    params = urllib.parse.quote_plus("DRIVER={ODBC Driver 17 for SQL Server};SERVER=" + config.serverName + ";DATABASE="+ config.database +";UID="+config.userName+";PWD=" +config.password)
-    engine = create_engine("mssql+pyodbc:///?odbc_connect=%s" % params, module=pyodbc,echo=False)
-    Base = declarative_base(engine)
-    #cnxn = pyodbc.connect("DRIVER={SQL Server Native Client 11.0};SERVER=" + config.serverName + ";DATABASE="+ config.database +";UID="+config.userName+";PWD=" +config.password)
-    #'DRIVER={ODBC Driver 17 for SQL Server}
+    cnxn = pyodbc.connect("DRIVER={SQL Server Native Client 11.0};SERVER=" + config.serverName + ";DATABASE="+ config.database +";UID="+config.userName+";PWD=" +config.password)
+    'DRIVER={ODBC Driver 17 for SQL Server}
     df = pd.read_sql(sql_query, cnxn)
     cnxn.close()
     return df
