@@ -46,7 +46,7 @@ def get_frpp():
     # cnxn.close()
 
     cnxn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server};SERVER='+config.serverName+';DATABASE='+config.database+';UID='+config.userName+';PWD='+ config.password)
-    cursor = cnxn.cursor()
+    #cursor = cnxn.cursor()
     df = pd.read_sql(sql_query, cnxn)
     # print(results)
     return df
