@@ -21,7 +21,7 @@ dater = datetime.datetime.now()
 dater = (str(dater.month) + str(dater.day) + str(dater.year))
 #print(dater)
 #Get address data from SQL Server
-sql_query = '''SELECT top 10 [Asset_ID__c] as OBJECTID
+sql_query = '''SELECT  [Asset_ID__c] as OBJECTID
 ,[ReportingAgency__c] as Agency
 ,[ReportingBureau__c] as Bureau
 ,[RealPropertyUniqueId__c] as RPUID
