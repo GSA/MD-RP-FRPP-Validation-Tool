@@ -5,6 +5,7 @@ import requests as re
 import json
 import pyodbc
 import urllib
+import urllib3
 import os
 #os.chdir('G:\\Shared drives\\MD Database Team\\MA\\RP\\RP_FRPP_Validation_Tool\\MD-RP-FRPP-Validation-Tool')
 import glob
@@ -15,7 +16,6 @@ file_dir = os.path.dirname(__file__)
 sys.path.append(file_dir)
 from utils import config 
 import datetime 
-from sqlalchemy import create_engine
 
 dater = datetime.datetime.now() 
 dater = (str(dater.month) + str(dater.day) + str(dater.year))
@@ -46,9 +46,7 @@ def get_frpp():
     # cnxn.close()
 
     cnxn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server};SERVER='+config.serverName+';DATABASE='+config.database+';UID='+config.userName+';PWD='+ config.password)
-    #cursor = cnxn.cursor()
     df = pd.read_sql(sql_query, cnxn)
-    # print(results)
     return df
 
 FRPP_df = get_frpp()
@@ -145,6 +143,7 @@ def read_multi_excel(path):
     return df
 
 counter = len(FRPP_df.index) 
+#print(counter)
 f = open("FRPP_Validation_Elapsed_Time_Log.txt", "a")
 
 startTime = datetime.datetime.now()
