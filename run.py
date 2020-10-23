@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from pandas.io.json import json_normalize
+from pandas import json_normalize
 import requests as re
 import json
 import pyodbc
@@ -21,7 +21,7 @@ dater = datetime.datetime.now()
 dater = (str(dater.month) + str(dater.day) + str(dater.year))
 #print(dater)
 #Get address data from SQL Server
-sql_query = '''SELECT [Asset_ID__c] as OBJECTID
+sql_query = '''SELECT top 10 [Asset_ID__c] as OBJECTID
 ,[ReportingAgency__c] as Agency
 ,[ReportingBureau__c] as Bureau
 ,[RealPropertyUniqueId__c] as RPUID
@@ -157,7 +157,7 @@ f.close()
 
 json_to_excel()
 
-final_df = read_multi_excel("data\\archive\\geocoded_" + str(dater) + ".xlsx")
+final_df = pd.read_excel("data/archive/geocoded_" + str(dater) + ".xlsx")
 
 final_df.rename(columns={
     'attributes.AddNum' :  'AddNum',
@@ -201,10 +201,10 @@ import urllib
 from sqlalchemy.engine import create_engine
 from sqlalchemy.types import Integer, Text, String, DateTime
 import sqlalchemy
-params = urllib.parse.quote_plus("DRIVER={SQL Server Native Client 11.0};SERVER=" + config.serverName + ";DATABASE="+ config.database +";UID="+ config.userName+";PWD=" + config.password)
+params = urllib.parse.quote_plus("DRIVER={ODBC Driver 17 for SQL Server};SERVER=" + config.serverName + ";DATABASE="+ config.database +";UID="+ config.userName+";PWD=" + config.password)
 engine = create_engine("mssql+pyodbc:///?odbc_connect=%s" % params, module=pyodbc,echo=False)
 
-frppValidation = pd.read_excel("data\\FRPP_geocoded_" + dater + ".xlsx")
+frppValidation = pd.read_excel("data/FRPP_geocoded_" + dater + ".xlsx")
 #print(frppValidation)
 
 #FASCN_table.columns
