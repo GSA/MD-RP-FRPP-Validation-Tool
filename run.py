@@ -5,6 +5,7 @@ import requests as re
 import json
 import pyodbc
 import urllib
+import urllib3
 import os
 #os.chdir('G:\\Shared drives\\MD Database Team\\MA\\RP\\RP_FRPP_Validation_Tool\\MD-RP-FRPP-Validation-Tool')
 import glob
@@ -15,13 +16,12 @@ file_dir = os.path.dirname(__file__)
 sys.path.append(file_dir)
 from utils import config 
 import datetime 
-from sqlalchemy import create_engine
 
 dater = datetime.datetime.now() 
 dater = (str(dater.month) + str(dater.day) + str(dater.year))
 #print(dater)
 #Get address data from SQL Server
-sql_query = '''SELECT [Asset_ID__c] as OBJECTID
+sql_query = '''SELECT top 10 [Asset_ID__c] as OBJECTID
 ,[ReportingAgency__c] as Agency
 ,[ReportingBureau__c] as Bureau
 ,[RealPropertyUniqueId__c] as RPUID
@@ -46,9 +46,7 @@ def get_frpp():
     # cnxn.close()
 
     cnxn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server};SERVER='+config.serverName+';DATABASE='+config.database+';UID='+config.userName+';PWD='+ config.password)
-    #cursor = cnxn.cursor()
     df = pd.read_sql(sql_query, cnxn)
-    # print(results)
     return df
 
 FRPP_df = get_frpp()
@@ -145,6 +143,7 @@ def read_multi_excel(path):
     return df
 
 counter = len(FRPP_df.index) 
+#print(counter)
 f = open("FRPP_Validation_Elapsed_Time_Log.txt", "a")
 
 startTime = datetime.datetime.now()
@@ -201,7 +200,7 @@ import urllib
 from sqlalchemy.engine import create_engine
 from sqlalchemy.types import Integer, Text, String, DateTime
 import sqlalchemy
-params = urllib.parse.quote_plus("DRIVER={SQL Server Native Client 11.0};SERVER=" + config.serverName + ";DATABASE="+ config.database +";UID="+ config.userName+";PWD=" + config.password)
+params = urllib.parse.quote_plus("DRIVER={ODBC Driver 17 for SQL Server};SERVER=" + config.serverName + ";DATABASE="+ config.database +";UID="+ config.userName+";PWD=" + config.password)
 engine = create_engine("mssql+pyodbc:///?odbc_connect=%s" % params, module=pyodbc,echo=False)
 
 frppValidation = pd.read_excel("data\\FRPP_geocoded_" + dater + ".xlsx")
